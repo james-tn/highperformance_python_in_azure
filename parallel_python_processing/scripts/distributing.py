@@ -26,11 +26,13 @@ if not (grouping_output_folder is None):
     print("%s created" % grouping_output_folder)
 
 messages_per_task = int(queue_length/parallel_task_count)
+if messages_per_task<1:
+    messages_per_task=1
 
 #create a grouping of table:file_list
 node_message_mapping = [messages_per_task]*parallel_task_count
 
-map_output =pd.DataFrame({"messages_per_node":node_message_mapping})
+map_output =pd.DataFrame({"messages_per_task":node_message_mapping})
 dataset_path=os.path.join(grouping_output_folder,"mapping.csv")
 
 map_output.to_csv(dataset_path)

@@ -29,7 +29,7 @@ def run(mini_batch):
     print(f'run method start: {__file__}, run({mini_batch})')
     resultList = []
     print("minibatch is ", mini_batch)
-    messages_to_fetch= mini_batch['messages_per_node'][0]
+    messages_to_fetch= mini_batch['messages_per_task'][0]
     print("messages_to_fetch is", messages_to_fetch)
 
     msg_count=0
@@ -51,8 +51,11 @@ def run(mini_batch):
 
                 if ".csv" in url:
                     data = pd.read_csv(file_path)
-                else:
+                elif ".xlsx" in url:
                     data = pd.read_excel(file_path)
+                else:
+                    print("no suitable format to read")
+                    continue
 
 
                 target_file_name = file_name.replace("xlsx", "csv")
