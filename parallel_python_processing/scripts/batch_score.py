@@ -69,12 +69,13 @@ def run(mini_batch):
                     else:
                         print("no suitable format to read")
                         continue
+                    data =data.drop(['id'], axis=1)
                     try:
-                        output = LGBM_MODEL.predict(data)
+                        output = LGBM_MODEL.predict(data.values)
                     except Exception as e:
                         print("error predicting file {}".format(file_path), e)
                         continue
-                    output = pd.DataFrame({"score": output, "source": ["datafile1.csv"] * len(output)})
+                    output = pd.DataFrame({"score": output, "source": [file_name] * len(output)})
 
                     target_file_name = file_name.replace("xlsx", "csv")
 
@@ -91,8 +92,7 @@ def run(mini_batch):
         resultList.append({"Number of files processed":msg_count})
         print("resultlist: ", resultList)
     return resultList
-# if __name__ == "__main__":
-#     hello.helloworld("hello")
+
 
 
 
