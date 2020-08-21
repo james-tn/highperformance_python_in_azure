@@ -71,15 +71,16 @@ def run(mini_batch):
                         continue
                     data =data.drop(['id'], axis=1)
                     try:
-                        output = LGBM_MODEL.predict(data.values)
+                        output = LGBM_MODEL.predict(data)
                     except Exception as e:
                         print("error predicting file {}".format(file_path), e)
                         continue
                     output = pd.DataFrame({"score": output, "source": [file_name] * len(output)})
 
                     target_file_name = file_name.replace("xlsx", "csv")
+                    target_file_name= "scored_"+target_file_name
 
-                    output_path = os.environ.get('AZUREML_DATAREFERENCE_preprocess_output')+"/"+folder_name
+                    output_path = os.environ.get('AZUREML_DATAREFERENCE_batch_score_output')+"/"+folder_name
 
                     if  not os.path.exists(output_path):
                         os.mkdir(output_path)
