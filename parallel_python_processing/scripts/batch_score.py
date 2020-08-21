@@ -69,7 +69,11 @@ def run(mini_batch):
                     else:
                         print("no suitable format to read")
                         continue
-                    output = LGBM_MODEL.predict(data)
+                    try:
+                        output = LGBM_MODEL.predict(data)
+                    except Exception as e:
+                        print("error predicting file {}".format(file_path), e)
+                        continue
                     output = pd.DataFrame({"score": output, "source": ["datafile1.csv"] * len(output)})
 
                     target_file_name = file_name.replace("xlsx", "csv")
