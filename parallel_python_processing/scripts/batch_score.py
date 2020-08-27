@@ -16,15 +16,15 @@ import joblib
 from azureml.core.model import Model
 
 def init():
-    global queue_client, aml_run,LGBM_MODEL
+    global sb_client, queue_client, aml_run,LGBM_MODEL, topic
     aml_run = Run.get_context()
     ws = aml_run.experiment.workspace
     keyvault = ws.get_default_keyvault()
 
-    con_str =keyvault.get_secret('servicebusconstr')
+    con_str =keyvault.get_secret('servicebustopic')
 
     sb_client = ServiceBusClient.from_connection_string(con_str)
-    queue_client = sb_client.get_queue("landing")
+    # queue_client = sb_client.get_queue("landing")
     #Loading model from AML Workspace
 
     model_name = "porto_seguro_safe_driver_model"
@@ -32,6 +32,13 @@ def init():
     model.download("model", exist_ok=True)
     model_path = os.path.join("model", model_name)
     LGBM_MODEL = joblib.load(model_path)
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--topic", type=str,dest="topic", required=True, help="name of topic")
+
+    args,_ = parser.parse_known_args()
+    # Set number of tasks equal to total number of cores in the cluster
+    topic = args.topic
 
 
 
@@ -45,14 +52,18 @@ def run(mini_batch):
         mini_batch_ds = pd.read_csv(file)
         msg_count = 0
         messages_to_fetch = int(mini_batch_ds.iloc[0]['messages_per_task'])
+        subscription = str(mini_batch_ds.iloc[0]['subscription'])
+        subscription_client=sb_client.get_subscription(subscription_name=subscription, topic_name =topic)
+
         print("processing batch ", i+1)
         print("files to score  for this batch",messages_to_fetch )
 
         #Preprocessing logic here for this batch
-        while (msg_count<=messages_to_fetch):
+        with subscription_client.get_receiver(prefetch=10) as queue_receiver:
 
-            with queue_client.get_receiver(prefetch=1000) as queue_receiver:
-                messages = queue_receiver.fetch_next(timeout=30, max_batch_size=1000)
+            while (msg_count<=messages_to_fetch):
+
+                messages = queue_receiver.fetch_next(timeout=3, max_batch_size=10)
                 for message in messages:
                     json_content = json.loads(str(message))
                     url = json_content['data']['url']

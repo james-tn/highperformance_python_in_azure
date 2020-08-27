@@ -28,13 +28,14 @@ if not (grouping_output_folder is None):
 messages_per_task = int(queue_length/parallel_task_count)
 if messages_per_task<1:
     messages_per_task=1
-
+subscription_list =["sub1", "sub2"]
 #create a grouping of table:file_list
 # node_message_mapping = [messages_per_task]*parallel_task_count
 for i in range(parallel_task_count):
-
-    map_output = pd.DataFrame({"messages_per_task":[messages_per_task]})
+    #creating a round robin distribution of subscription
+    sub = i % len(subscription_list)
+    map_output = pd.DataFrame({"messages_per_task":[messages_per_task], "subscription":[subscription_list[sub]]})
     dataset_path=os.path.join(grouping_output_folder,"task{}.csv".format(i+1))
     map_output.to_csv(dataset_path,index=False)
 
-    print("Step 1 -- distributing Completed")
+print("Step 1 -- distributing Completed")
