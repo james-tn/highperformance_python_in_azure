@@ -59,11 +59,11 @@ def run(mini_batch):
         print("files to score  for this batch",messages_to_fetch )
 
         #Preprocessing logic here for this batch
-        with subscription_client.get_receiver(prefetch=10) as queue_receiver:
+        with subscription_client.get_receiver(prefetch=10) as subscription_receiver:
 
             while (msg_count<=messages_to_fetch):
 
-                messages = queue_receiver.fetch_next(timeout=3, max_batch_size=10)
+                messages = subscription_receiver.fetch_next(timeout=3, max_batch_size=10)
                 for message in messages:
                     json_content = json.loads(str(message))
                     url = json_content['data']['url']
